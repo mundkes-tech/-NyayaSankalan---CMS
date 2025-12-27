@@ -17,11 +17,11 @@ import {
   Send,
   Shield
 } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
-import { getCases, getFIRs, updateCase, addAuditLog } from '../utils/localStorage';
-import { Case, FIR, Document, TimelineEntry } from '../types';
-import StatusBadge from '../components/UI/StatusBadge';
-import Timeline from '../components/UI/Timeline';
+import { useAuth } from '../../contexts/AuthContext';
+import { getCases, getFIRs, updateCase, addAuditLog } from '../../utils/localStorage';
+import { Case, FIR, Document, TimelineEntry } from '../../types';
+import StatusBadge from '../../components/UI/StatusBadge';
+import Timeline from '../../components/UI/Timeline';
 
 const CaseDetail: React.FC = () => {
   const { caseId } = useParams<{ caseId: string }>();
@@ -31,11 +31,16 @@ const CaseDetail: React.FC = () => {
   
   // Determine the role prefix for navigation
   const getRolePrefix = () => {
-    if (location.pathname.startsWith('/officer')) return '/officer';
+    if (location.pathname.startsWith('/police')) return '/police';
     if (location.pathname.startsWith('/sho')) return '/sho';
-    if (location.pathname.startsWith('/court')) return '/court';
     if (location.pathname.startsWith('/judge')) return '/judge';
-    return ''; // fallback to generic routes
+    if (location.pathname.startsWith('/clerk')) return '/clerk';
+    // fallback based on user role
+    if (user?.role === 'police') return '/police';
+    if (user?.role === 'sho') return '/sho';
+    if (user?.role === 'judge') return '/judge';
+    if (user?.role === 'court_clerk') return '/clerk';
+    return '';
   };
   
   const rolePrefix = getRolePrefix();
@@ -186,16 +191,59 @@ const CaseDetail: React.FC = () => {
   const canAccept = user?.role === 'court_clerk' && currentCase.status === 'submitted_to_court';
   const canViewDocuments = ['police', 'sho', 'court_clerk', 'judge'].includes(user?.role || '');
 
+  // Edit mode via query param ?edit=true
+  const searchParams = new URLSearchParams(location.search);
+  const isEditMode = searchParams.get('edit') === 'true';
+  const [editTitle, setEditTitle] = React.useState(currentCase.title);
+  const [editDescription, setEditDescription] = React.useState(currentCase.description);
+
+  React.useEffect(() => {
+    setEditTitle(currentCase.title);
+    setEditDescription(currentCase.description);
+  }, [currentCase]);
+
+  const handleSaveEdit = () => {
+    if (!canEdit) return;
+    updateCase(currentCase.id, {
+      title: editTitle,
+      description: editDescription,
+      updatedAt: new Date().toISOString()
+    });
+    addAuditLog({
+      action: 'CASE_EDITED',
+      resource: 'CASE',
+      resourceId: currentCase.id,
+      details: { editedBy: user?.name }
+    });
+    // navigate back to case view without edit param
+    navigate(`${rolePrefix}/cases/${currentCase.id}`);
+  };
+
+  const handleStartEdit = () => {
+    navigate(`${rolePrefix}/cases/${currentCase.id}?edit=true`);
+  };
+
   const getActionButtons = () => {
     return (
       <div className="flex flex-wrap gap-2">
-        {canEdit && (
-          <button className="inline-flex items-center px-3 py-2 text-sm font-medium rounded border border-gray-600 text-gray-300 hover:bg-gray-700">
+        {canEdit && !isEditMode && (
+          <button onClick={handleStartEdit} className="inline-flex items-center px-3 py-2 text-sm font-medium rounded border border-gray-600 text-gray-300 hover:bg-gray-700">
             <Edit className="h-4 w-4 mr-1" />
             Edit Case
           </button>
         )}
-        
+
+        {isEditMode && canEdit && (
+          <>
+            <button onClick={handleSaveEdit} className="inline-flex items-center px-3 py-2 text-sm font-medium rounded bg-blue-600 text-white hover:bg-blue-700">
+              Save
+            </button>
+            <button onClick={() => navigate(`${rolePrefix}/cases/${currentCase.id}`)} className="inline-flex items-center px-3 py-2 text-sm font-medium rounded border border-gray-600 text-gray-300 hover:bg-gray-700">
+              Cancel
+            </button>
+          </>
+        )}
+
         {canApprove && (
           <>
             <button 

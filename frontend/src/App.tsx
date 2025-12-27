@@ -6,23 +6,44 @@ import AppLayout from './components/Layout/AppLayout';
 
 // Pages
 import Login from './pages/Login';
-import Dashboard from './pages/Dashboard';
-import FIRIntake from './pages/FIRIntake';
-import Cases from './pages/Cases';
-import Documents from './pages/Documents';
-import Analytics from './pages/Analytics';
-import Notifications from './pages/Notifications';
-import AuditTrail from './pages/AuditTrail';
-import CaseDetail from './pages/CaseDetail';
-import FIRDetail from './pages/FIRDetail';
-import DocumentDetail from './pages/DocumentDetail';
-import EvidenceList from './pages/EvidenceList';
-import ChargeSheet from './pages/ChargeSheet';
-import RemandApplication from './pages/RemandApplication';
-import EvidenceListTemplate from './pages/EvidenceListTemplate';
-import WitnessList from './pages/WitnessList';
-import AssignCase from './pages/AssignCase';
-import GenericPage from './pages/GenericPage';
+
+// Police pages
+import PoliceDashboard from './pages/police/Dashboard';
+import PoliceFIRIntake from './pages/police/FIRIntake';
+import PoliceCases from './pages/police/Cases';
+import PoliceCaseDetail from './pages/police/CaseDetail';
+import PoliceFIRDetail from './pages/police/FIRDetail';
+import PoliceDocuments from './pages/police/Documents';
+import PoliceDocumentDetail from './pages/police/DocumentDetail';
+import PoliceEvidenceList from './pages/police/EvidenceList';
+import PoliceEvidenceListTemplate from './pages/police/EvidenceListTemplate';
+import PoliceChargeSheet from './pages/police/ChargeSheet';
+import PoliceWitnessList from './pages/police/WitnessList';
+import PoliceGenericPage from './pages/police/GenericPage';
+
+// SHO pages
+import SHODashboard from './pages/sho/Dashboard';
+import SHOAssignCase from './pages/sho/AssignCase';
+import SHOCases from './pages/sho/Cases';
+import SHODocuments from './pages/sho/Documents';
+import SHORemandApplication from './pages/sho/RemandApplication';
+import SHOAnalytics from './pages/sho/Analytics';
+import SHOGenericPage from './pages/sho/GenericPage';
+
+// Judge pages
+import JudgeDashboard from './pages/judge/Dashboard';
+import JudgeCases from './pages/judge/Cases';
+import JudgeDocuments from './pages/judge/Documents';
+import JudgeAuditTrail from './pages/judge/AuditTrail';
+import JudgeNotifications from './pages/judge/Notifications';
+import JudgeGenericPage from './pages/judge/GenericPage';
+
+// Clerk pages
+import ClerkDashboard from './pages/clerk/Dashboard';
+import ClerkCases from './pages/clerk/Cases';
+import ClerkDocuments from './pages/clerk/Documents';
+import ClerkAnalytics from './pages/clerk/Analytics';
+import ClerkGenericPage from './pages/clerk/GenericPage';
 
 // Protected Route Component
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -40,7 +61,8 @@ const PublicRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isAuthenticated } = useAuth();
   
   if (isAuthenticated) {
-    return <Navigate to="/dashboard" replace />;
+    // Let the protected root redirect to the appropriate role dashboard
+    return <Navigate to="/" replace />;
   }
   
   return <>{children}</>;
@@ -81,38 +103,66 @@ function App() {
                 <Login />
               </PublicRoute>
             } />
-            
+
             <Route path="/" element={
               <ProtectedRoute>
                 <AppLayout />
               </ProtectedRoute>
             }>
-              <Route index element={<Navigate to="/dashboard" replace />} />
-              <Route path="dashboard" element={<Dashboard />} />
-              <Route path="fir-intake" element={<FIRIntake />} />
-              <Route path="cases" element={<Cases />} />
-              <Route path="cases/:caseId" element={<CaseDetail />} />
-              <Route path="fir/:firId" element={<FIRDetail />} />
-              <Route path="documents" element={<Documents />} />
-              <Route path="documents/:docId" element={<DocumentDetail />} />
-              <Route path="evidence/:caseId" element={<EvidenceList />} />
-              <Route path="charge-sheet/:caseId" element={<ChargeSheet />} />
-              <Route path="remand/:caseId" element={<RemandApplication />} />
-              <Route path="evidence-list/:caseId" element={<EvidenceListTemplate />} />
-              <Route path="witness-list/:caseId" element={<WitnessList />} />
-              <Route path="evidence" element={<GenericPage title="Evidence Management" description="Manage evidence for your cases" />} />
-              <Route path="submit" element={<GenericPage title="Submit to SHO" description="Submit cases to Senior Officer for approval" />} />
-              <Route path="approve" element={<GenericPage title="Approvals" description="Review and approve cases" />} />
-              <Route path="assign/:caseId?" element={<AssignCase />} />
-              <Route path="intake" element={<GenericPage title="Case Intake" description="Intake new cases" />} />
-              <Route path="receipts" element={<GenericPage title="Receipts" description="Manage case receipts" />} />
-              <Route path="generate" element={<GenericPage title="Generate Receipt" description="Generate acknowledgment receipts for cases" />} />
-              <Route path="timeline" element={<GenericPage title="Case Timeline" description="View case timelines" />} />
-              <Route path="search" element={<GenericPage title="Search" description="Search across all records" />} />
-              <Route path="analytics" element={<Analytics />} />
-              <Route path="notifications" element={<Notifications />} />
-              <Route path="audit" element={<AuditTrail />} />
-              <Route path="judgments" element={<GenericPage title="Judgments" description="View case judgments" />} />
+              {/* Default to police dashboard for now */}
+              <Route index element={<Navigate to="/police/dashboard" replace />} />
+
+              {/* Police routes */}
+              <Route path="police">
+                <Route index element={<Navigate to="dashboard" replace />} />
+                <Route path="dashboard" element={<PoliceDashboard />} />
+                <Route path="fir-intake" element={<PoliceFIRIntake />} />
+                <Route path="cases" element={<PoliceCases />} />
+                <Route path="cases/:caseId" element={<PoliceCaseDetail />} />
+                <Route path="fir/:firId" element={<PoliceFIRDetail />} />
+                <Route path="documents" element={<PoliceDocuments />} />
+                <Route path="documents/:docId" element={<PoliceDocumentDetail />} />
+                <Route path="evidence/:caseId" element={<PoliceEvidenceList />} />
+                <Route path="charge-sheet/:caseId" element={<PoliceChargeSheet />} />
+                <Route path="evidence-list/:caseId" element={<PoliceEvidenceListTemplate />} />
+                <Route path="witness-list/:caseId" element={<PoliceWitnessList />} />
+                <Route path="*" element={<PoliceGenericPage title="Police" description="Police pages" />} />
+              </Route>
+
+              {/* SHO routes */}
+              <Route path="sho">
+                <Route index element={<Navigate to="dashboard" replace />} />
+                <Route path="dashboard" element={<SHODashboard />} />
+                <Route path="assign/:caseId?" element={<SHOAssignCase />} />
+                <Route path="cases" element={<SHOCases />} />
+                <Route path="documents" element={<SHODocuments />} />
+                <Route path="remand/:caseId" element={<SHORemandApplication />} />
+                <Route path="analytics" element={<SHOAnalytics />} />
+                <Route path="*" element={<SHOGenericPage title="SHO" description="SHO pages" />} />
+              </Route>
+
+              {/* Judge routes */}
+              <Route path="judge">
+                <Route index element={<Navigate to="dashboard" replace />} />
+                <Route path="dashboard" element={<JudgeDashboard />} />
+                <Route path="cases" element={<JudgeCases />} />
+                <Route path="documents" element={<JudgeDocuments />} />
+                <Route path="audit" element={<JudgeAuditTrail />} />
+                <Route path="notifications" element={<JudgeNotifications />} />
+                <Route path="judgments" element={<JudgeGenericPage title="Judgments" description="View case judgments" />} />
+                <Route path="*" element={<JudgeGenericPage title="Judge" description="Judge pages" />} />
+              </Route>
+
+              {/* Clerk routes */}
+              <Route path="clerk">
+                <Route index element={<Navigate to="dashboard" replace />} />
+                <Route path="dashboard" element={<ClerkDashboard />} />
+                <Route path="cases" element={<ClerkCases />} />
+                <Route path="documents" element={<ClerkDocuments />} />
+                <Route path="analytics" element={<ClerkAnalytics />} />
+                <Route path="*" element={<ClerkGenericPage title="Clerk" description="Clerk pages" />} />
+              </Route>
+
             </Route>
           </Routes>
         </div>

@@ -20,41 +20,42 @@ import { useAuth } from '../../contexts/AuthContext';
 
 const Sidebar: React.FC = () => {
   const { user } = useAuth();
+  const rolePath = user?.role === 'court_clerk' ? 'clerk' : user?.role || 'police';
 
   const getNavItems = () => {
     switch (user?.role) {
       case 'police':
         return [
-          { to: '/dashboard', icon: FolderOpen, label: 'Dashboard' },
-          { to: '/fir-intake', icon: FileText, label: 'FIR Intake' },
-          { to: '/cases', icon: ClipboardList, label: 'My Cases' },
-          { to: '/documents', icon: Upload, label: 'Documents' },
-          { to: '/evidence', icon: Shield, label: 'Evidence' },
+          { to: `/${rolePath}/dashboard`, icon: FolderOpen, label: 'Dashboard' },
+          { to: `/${rolePath}/fir-intake`, icon: FileText, label: 'FIR Intake' },
+          { to: `/${rolePath}/cases`, icon: ClipboardList, label: 'My Cases' },
+          { to: `/${rolePath}/documents`, icon: Upload, label: 'Documents' },
+          { to: `/${rolePath}/evidence`, icon: Shield, label: 'Evidence' },
         ];
       case 'sho':
         return [
-          { to: '/dashboard', icon: FolderOpen, label: 'Dashboard' },
-          { to: '/cases', icon: ClipboardList, label: 'All Cases' },
-          { to: '/documents', icon: FileText, label: 'Documents' },
-          { to: '/approve', icon: CheckCircle, label: 'Approvals' },
-          { to: '/assign', icon: Users, label: 'Assign Cases' },
-          { to: '/analytics', icon: BarChart3, label: 'Analytics' },
+          { to: `/${rolePath}/dashboard`, icon: FolderOpen, label: 'Dashboard' },
+          { to: `/${rolePath}/cases`, icon: ClipboardList, label: 'All Cases' },
+          { to: `/${rolePath}/documents`, icon: FileText, label: 'Documents' },
+          { to: `/${rolePath}/approve`, icon: CheckCircle, label: 'Approvals' },
+          { to: `/${rolePath}/assign`, icon: Users, label: 'Assign Cases' },
+          { to: `/${rolePath}/analytics`, icon: BarChart3, label: 'Analytics' },
         ];
       case 'court_clerk':
         return [
-          { to: '/dashboard', icon: FolderOpen, label: 'Dashboard' },
-          { to: '/cases', icon: ClipboardList, label: 'Incoming Cases' },
-          { to: '/receipts', icon: CheckCircle, label: 'Receipts' },
-          { to: '/generate', icon: FileText, label: 'Generate Receipt' },
-          { to: '/analytics', icon: BarChart3, label: 'Analytics' },
+          { to: `/${rolePath}/dashboard`, icon: FolderOpen, label: 'Dashboard' },
+          { to: `/${rolePath}/cases`, icon: ClipboardList, label: 'Incoming Cases' },
+          { to: `/${rolePath}/receipts`, icon: CheckCircle, label: 'Receipts' },
+          { to: `/${rolePath}/generate`, icon: FileText, label: 'Generate Receipt' },
+          { to: `/${rolePath}/analytics`, icon: BarChart3, label: 'Analytics' },
         ];
       case 'judge':
         return [
-          { to: '/dashboard', icon: FolderOpen, label: 'Dashboard' },
-          { to: '/cases', icon: ClipboardList, label: 'Cases' },
-          { to: '/documents', icon: FileText, label: 'Documents' },
-          { to: '/timeline', icon: Clock, label: 'Timeline' },
-          { to: '/judgments', icon: Gavel, label: 'Judgments' },
+          { to: `/${rolePath}/dashboard`, icon: FolderOpen, label: 'Dashboard' },
+          { to: `/${rolePath}/cases`, icon: ClipboardList, label: 'Cases' },
+          { to: `/${rolePath}/documents`, icon: FileText, label: 'Documents' },
+          { to: `/${rolePath}/timeline`, icon: Clock, label: 'Timeline' },
+          { to: `/${rolePath}/judgments`, icon: Gavel, label: 'Judgments' },
         ];
       default:
         return [];
@@ -62,9 +63,9 @@ const Sidebar: React.FC = () => {
   };
 
   const commonItems = [
-    { to: '/search', icon: Search, label: 'Search' },
-    { to: '/notifications', icon: Bell, label: 'Notifications' },
-    { to: '/audit', icon: Shield, label: 'Audit Trail' },
+    { to: `/${rolePath}/search`, icon: Search, label: 'Search' },
+    { to: `/${rolePath}/notifications`, icon: Bell, label: 'Notifications' },
+    { to: `/${rolePath}/audit`, icon: Shield, label: 'Audit Trail' },
   ];
 
   const navItems = getNavItems();

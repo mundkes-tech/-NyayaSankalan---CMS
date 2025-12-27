@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { Upload, FileText, CheckCircle, AlertCircle, Search, Download, Eye } from 'lucide-react';
-import { Document } from '../types';
-import { getCases } from '../utils/localStorage';
-import { useAuth } from '../contexts/AuthContext';
-import StatusBadge from '../components/UI/StatusBadge';
-import Modal from '../components/UI/Modal';
+import { Document } from '../../types';
+import { getCases } from '../../utils/localStorage';
+import { useAuth } from '../../contexts/AuthContext';
+import StatusBadge from '../../components/UI/StatusBadge';
+import Modal from '../../components/UI/Modal';
 import toast from 'react-hot-toast';
 
 const Documents: React.FC = () => {

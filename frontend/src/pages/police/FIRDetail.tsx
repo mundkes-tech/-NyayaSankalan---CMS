@@ -12,15 +12,16 @@ import {
   Download,
   Edit
 } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
-import { getFIRs, getCases } from '../utils/localStorage';
-import { FIR, Case } from '../types';
-import StatusBadge from '../components/UI/StatusBadge';
+import { useAuth } from '../../contexts/AuthContext';
+import { getFIRs, getCases } from '../../utils/localStorage';
+import { FIR, Case } from '../../types';
+import StatusBadge from '../../components/UI/StatusBadge';
 
 const FIRDetail: React.FC = () => {
   const { firId } = useParams<{ firId: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const rolePath = user?.role ? (user.role === 'court_clerk' ? 'clerk' : user.role) : 'police';
   
   const allFIRs = getFIRs();
   const allCases = getCases();
@@ -73,7 +74,7 @@ const FIRDetail: React.FC = () => {
         )}
         
         <Link 
-          to={`/documents?firId=${currentFIR.id}`}
+          to={`/${rolePath}/documents?firId=${currentFIR.id}`}
           className="inline-flex items-center px-3 py-2 text-sm font-medium rounded border border-gray-600 text-gray-300 hover:bg-gray-700"
         >
           <FileText className="h-4 w-4 mr-1" />

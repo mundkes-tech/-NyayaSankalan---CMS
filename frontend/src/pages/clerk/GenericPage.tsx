@@ -11,7 +11,7 @@ import {
   Search,
   Gavel
 } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface GenericPageProps {
   title: string;
@@ -27,6 +27,7 @@ const GenericPage: React.FC<GenericPageProps> = ({
   showBackButton = true
 }) => {
   const { user } = useAuth();
+  const rolePath = user?.role === 'court_clerk' ? 'clerk' : user?.role || 'clerk';
   const navigate = useNavigate();
   const { caseId } = useParams<{ caseId: string }>();
 
@@ -91,19 +92,19 @@ const GenericPage: React.FC<GenericPageProps> = ({
           <h3 className="text-lg font-medium text-white mb-4">Quick Actions</h3>
           <div className="space-y-3">
             <Link 
-              to="/dashboard"
+              to={`/${rolePath}/dashboard`}
               className="block px-4 py-2 text-sm font-medium rounded border border-gray-600 text-gray-300 hover:bg-gray-700"
             >
               Return to Dashboard
             </Link>
             <Link 
-              to="/cases"
+              to={`/${rolePath}/cases`}
               className="block px-4 py-2 text-sm font-medium rounded border border-gray-600 text-gray-300 hover:bg-gray-700"
             >
               View Cases
             </Link>
             <Link 
-              to="/documents"
+              to={`/${rolePath}/documents`}
               className="block px-4 py-2 text-sm font-medium rounded border border-gray-600 text-gray-300 hover:bg-gray-700"
             >
               View Documents

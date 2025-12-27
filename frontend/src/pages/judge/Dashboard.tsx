@@ -1,11 +1,12 @@
 import React from 'react';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../../contexts/AuthContext';
 import { FileText, FolderOpen, Clock, CheckCircle, AlertTriangle, BarChart3, Upload, Users, Shield, Bell } from 'lucide-react';
-import { getCases, getFIRs, getNotifications } from '../utils/localStorage';
-import StatusBadge from '../components/UI/StatusBadge';
+import { getCases, getFIRs, getNotifications } from '../../utils/localStorage';
+import StatusBadge from '../../components/UI/StatusBadge';
 
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
+  const rolePath = user?.role === 'court_clerk' ? 'clerk' : user?.role || 'judge';
   const cases = getCases();
   const firs = getFIRs();
   const notifications = getNotifications().filter(n => n.userId === user?.id || !n.userId);
@@ -23,10 +24,10 @@ const Dashboard: React.FC = () => {
             { label: 'Submitted to SHO', value: policeCases.filter(c => c.status === 'submitted_to_sho').length, icon: CheckCircle, color: 'purple' },
           ],
           quickActions: [
-            { label: 'Create FIR', icon: FileText, to: '/fir-intake', color: 'bg-blue-600' },
-            { label: 'View My Cases', icon: FolderOpen, to: '/cases', color: 'bg-green-600' },
-            { label: 'Upload Evidence', icon: Upload, to: '/documents', color: 'bg-yellow-600' },
-            { label: 'Generate Documents', icon: FileText, to: '/documents', color: 'bg-purple-600' },
+            { label: 'Create FIR', icon: FileText, to: `/${rolePath}/fir-intake`, color: 'bg-blue-600' },
+            { label: 'View My Cases', icon: FolderOpen, to: `/${rolePath}/cases`, color: 'bg-green-600' },
+            { label: 'Upload Evidence', icon: Upload, to: `/${rolePath}/documents`, color: 'bg-yellow-600' },
+            { label: 'Generate Documents', icon: FileText, to: `/${rolePath}/documents`, color: 'bg-purple-600' },
           ]
         };
       case 'sho':

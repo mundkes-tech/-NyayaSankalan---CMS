@@ -10,10 +10,10 @@ import {
   Clock,
   MapPin
 } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
-import { getCases, getFIRs, getPoliceOfficers, updateCase, addAuditLog } from '../utils/localStorage';
-import { Case, FIR, User as UserType } from '../types';
-import StatusBadge from '../components/UI/StatusBadge';
+import { useAuth } from '../../contexts/AuthContext';
+import { getCases, getFIRs, getPoliceOfficers, updateCase, addAuditLog } from '../../utils/localStorage';
+import { Case, FIR, User as UserType } from '../../types';
+import StatusBadge from '../../components/UI/StatusBadge';
 
 const AssignCase: React.FC = () => {
   const { caseId } = useParams<{ caseId: string }>();

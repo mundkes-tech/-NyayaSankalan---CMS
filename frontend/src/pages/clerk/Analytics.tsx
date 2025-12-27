@@ -1,7 +1,7 @@
 import React from 'react';
 import { BarChart3, Clock, FileText, TrendingUp, Users, CheckCircle } from 'lucide-react';
-import { getCases, getFIRs } from '../utils/localStorage';
-import { useAuth } from '../contexts/AuthContext';
+import { getCases, getFIRs } from '../../utils/localStorage';
+import { useAuth } from '../../contexts/AuthContext';
 
 const Analytics: React.FC = () => {
   const { user } = useAuth();

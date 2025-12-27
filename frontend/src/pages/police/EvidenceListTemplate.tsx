@@ -13,15 +13,16 @@ import {
   MapPin,
   Clock
 } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
-import { getCases, getFIRs, updateCase, addAuditLog } from '../utils/localStorage';
-import { Case, FIR, Document } from '../types';
-import StatusBadge from '../components/UI/StatusBadge';
+import { useAuth } from '../../contexts/AuthContext';
+import { getCases, getFIRs, updateCase, addAuditLog } from '../../utils/localStorage';
+import { Case, FIR, Document } from '../../types';
+import StatusBadge from '../../components/UI/StatusBadge';
 
 const EvidenceListTemplate: React.FC = () => {
   const { caseId } = useParams<{ caseId: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const rolePath = user?.role ? (user.role === 'court_clerk' ? 'clerk' : user.role) : 'police';
   
   const [isEditing, setIsEditing] = useState(true);
   const [evidenceData, setEvidenceData] = useState({
@@ -67,7 +68,7 @@ const EvidenceListTemplate: React.FC = () => {
           <FileText className="h-12 w-12 mx-auto text-gray-500 mb-4" />
           <p className="text-gray-400">The requested case could not be found.</p>
           <button 
-            onClick={() => navigate('/cases')}
+            onClick={() => navigate(`/${rolePath}/cases`)}
             className="mt-4 inline-flex items-center px-4 py-2 border border-gray-600 rounded-md text-sm font-medium text-gray-300 hover:bg-gray-700"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
@@ -402,7 +403,7 @@ const EvidenceListTemplate: React.FC = () => {
               <StatusBadge status={currentCase.status} />
             </div>
             <Link 
-              to={`/cases/${currentCase.id}`}
+              to={`/${rolePath}/cases/${currentCase.id}`}
               className="inline-flex items-center text-blue-400 hover:text-blue-300 text-sm"
             >
               View Case Details

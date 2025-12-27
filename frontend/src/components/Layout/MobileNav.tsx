@@ -14,40 +14,41 @@ import { useAuth } from '../../contexts/AuthContext';
 
 const MobileNav: React.FC = () => {
   const { user } = useAuth();
+  const rolePath = user?.role === 'court_clerk' ? 'clerk' : user?.role || 'police';
 
   const getNavItems = () => {
     switch (user?.role) {
       case 'police':
         return [
-          { to: '/dashboard', icon: FolderOpen, label: 'Dashboard' },
-          { to: '/fir-intake', icon: FileText, label: 'FIR' },
-          { to: '/cases', icon: ClipboardList, label: 'Cases' },
-          { to: '/submit', icon: Send, label: 'Submit' },
-          { to: '/notifications', icon: Bell, label: 'Alerts' },
+          { to: `/${rolePath}/dashboard`, icon: FolderOpen, label: 'Dashboard' },
+          { to: `/${rolePath}/fir-intake`, icon: FileText, label: 'FIR' },
+          { to: `/${rolePath}/cases`, icon: ClipboardList, label: 'Cases' },
+          { to: `/${rolePath}/submit`, icon: Send, label: 'Submit' },
+          { to: `/${rolePath}/notifications`, icon: Bell, label: 'Alerts' },
         ];
       case 'sho':
         return [
-          { to: '/dashboard', icon: FolderOpen, label: 'Dashboard' },
-          { to: '/cases', icon: ClipboardList, label: 'Cases' },
-          { to: '/approve', icon: CheckCircle, label: 'Approve' },
-          { to: '/analytics', icon: BarChart3, label: 'Analytics' },
-          { to: '/notifications', icon: Bell, label: 'Alerts' },
+          { to: `/${rolePath}/dashboard`, icon: FolderOpen, label: 'Dashboard' },
+          { to: `/${rolePath}/cases`, icon: ClipboardList, label: 'Cases' },
+          { to: `/${rolePath}/approve`, icon: CheckCircle, label: 'Approve' },
+          { to: `/${rolePath}/analytics`, icon: BarChart3, label: 'Analytics' },
+          { to: `/${rolePath}/notifications`, icon: Bell, label: 'Alerts' },
         ];
       case 'court_clerk':
         return [
-          { to: '/dashboard', icon: FolderOpen, label: 'Dashboard' },
-          { to: '/intake', icon: FileText, label: 'Intake' },
-          { to: '/cases', icon: ClipboardList, label: 'Cases' },
-          { to: '/receipts', icon: CheckCircle, label: 'Receipts' },
-          { to: '/notifications', icon: Bell, label: 'Alerts' },
+          { to: `/${rolePath}/dashboard`, icon: FolderOpen, label: 'Dashboard' },
+          { to: `/${rolePath}/intake`, icon: FileText, label: 'Intake' },
+          { to: `/${rolePath}/cases`, icon: ClipboardList, label: 'Cases' },
+          { to: `/${rolePath}/receipts`, icon: CheckCircle, label: 'Receipts' },
+          { to: `/${rolePath}/notifications`, icon: Bell, label: 'Alerts' },
         ];
       case 'judge':
         return [
-          { to: '/dashboard', icon: FolderOpen, label: 'Dashboard' },
-          { to: '/cases', icon: ClipboardList, label: 'Cases' },
-          { to: '/documents', icon: FileText, label: 'Docs' },
-          { to: '/timeline', icon: CheckCircle, label: 'Timeline' },
-          { to: '/notifications', icon: Bell, label: 'Alerts' },
+          { to: `/${rolePath}/dashboard`, icon: FolderOpen, label: 'Dashboard' },
+          { to: `/${rolePath}/cases`, icon: ClipboardList, label: 'Cases' },
+          { to: `/${rolePath}/documents`, icon: FileText, label: 'Docs' },
+          { to: `/${rolePath}/timeline`, icon: CheckCircle, label: 'Timeline' },
+          { to: `/${rolePath}/notifications`, icon: Bell, label: 'Alerts' },
         ];
       default:
         return [];

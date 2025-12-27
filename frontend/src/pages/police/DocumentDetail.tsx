@@ -11,15 +11,16 @@ import {
   AlertTriangle,
   CheckCircle
 } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
-import { getCases, getFIRs, getAuditLogs } from '../utils/localStorage';
-import { Document, Case, FIR } from '../types';
-import StatusBadge from '../components/UI/StatusBadge';
+import { useAuth } from '../../contexts/AuthContext';
+import { getCases, getFIRs, getAuditLogs } from '../../utils/localStorage';
+import { Document, Case, FIR } from '../../types';
+import StatusBadge from '../../components/UI/StatusBadge';
 
 const DocumentDetail: React.FC = () => {
   const { docId } = useParams<{ docId: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const rolePath = user?.role ? (user.role === 'court_clerk' ? 'clerk' : user.role) : 'police';
   
   // For this implementation, we'll simulate document data
   // In a real app, we would retrieve documents from localStorage
@@ -87,7 +88,7 @@ const DocumentDetail: React.FC = () => {
         
         {relatedCase && (
           <Link 
-            to={`/cases/${relatedCase.id}`}
+            to={`/${rolePath}/cases/${relatedCase.id}`}
             className="inline-flex items-center px-3 py-2 text-sm font-medium rounded border border-gray-600 text-gray-300 hover:bg-gray-700"
           >
             <FileText className="h-4 w-4 mr-1" />
@@ -115,7 +116,7 @@ const DocumentDetail: React.FC = () => {
           <div>
             <div className="flex items-center">
               <button 
-                onClick={() => navigate('/documents')}
+                onClick={() => navigate(`/${rolePath}/documents`)}
                 className="inline-flex items-center text-gray-400 hover:text-white mr-4"
               >
                 <ArrowLeft className="h-5 w-5 mr-1" />

@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import { Search, Filter, Eye, CreditCard as Edit, UserCheck } from 'lucide-react';
-import { getCases } from '../utils/localStorage';
-import { useAuth } from '../contexts/AuthContext';
+import { getCases } from '../../utils/localStorage';
+import { useAuth } from '../../contexts/AuthContext';
 import { Link } from 'react-router-dom';
-import StatusBadge from '../components/UI/StatusBadge';
-import { Case } from '../types';
+import StatusBadge from '../../components/UI/StatusBadge';
+import { Case } from '../../types';
 
 const Cases: React.FC = () => {
   const { user } = useAuth();
+  const rolePath = user?.role ? (user.role === 'court_clerk' ? 'clerk' : user.role) : 'judge';
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   
@@ -48,7 +49,7 @@ const Cases: React.FC = () => {
         return (
           <div className="flex space-x-2">
             <Link 
-              to={`/cases/${case_.id}`}
+              to={`/${rolePath}/cases/${case_.id}`}
               className="inline-flex items-center px-2 py-1 text-xs font-medium rounded border border-gray-600 text-gray-300 hover:bg-gray-700"
             >
               <Eye className="h-3 w-3 mr-1" />
@@ -66,7 +67,7 @@ const Cases: React.FC = () => {
         return (
           <div className="flex space-x-2">
             <Link 
-              to={`/cases/${case_.id}`}
+              to={`/${rolePath}/cases/${case_.id}`}
               className="inline-flex items-center px-2 py-1 text-xs font-medium rounded border border-gray-600 text-gray-300 hover:bg-gray-700"
             >
               <Eye className="h-3 w-3 mr-1" />
@@ -79,7 +80,7 @@ const Cases: React.FC = () => {
             )}
             {user?.role === 'sho' && (
               <Link 
-                to={`/assign/${case_.id}`}
+                to={`/${rolePath}/assign/${case_.id}`}
                 className="inline-flex items-center px-2 py-1 text-xs font-medium rounded border border-gray-600 text-gray-300 hover:bg-gray-700"
               >
                 <UserCheck className="h-3 w-3 mr-1" />
@@ -92,7 +93,7 @@ const Cases: React.FC = () => {
         return (
           <div className="flex space-x-2">
             <Link 
-              to={`/cases/${case_.id}`}
+              to={`/${rolePath}/cases/${case_.id}`}
               className="inline-flex items-center px-2 py-1 text-xs font-medium rounded border border-gray-600 text-gray-300 hover:bg-gray-700"
             >
               <Eye className="h-3 w-3 mr-1" />
@@ -108,7 +109,7 @@ const Cases: React.FC = () => {
       case 'judge':
         return (
           <Link 
-            to={`/cases/${case_.id}`}
+            to={`/${rolePath}/cases/${case_.id}`}
             className="inline-flex items-center px-2 py-1 text-xs font-medium rounded border border-gray-600 text-gray-300 hover:bg-gray-700"
           >
             <Eye className="h-3 w-3 mr-1" />

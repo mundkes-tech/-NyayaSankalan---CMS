@@ -11,15 +11,16 @@ import {
   Search,
   Filter
 } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
-import { getCases, getFIRs } from '../utils/localStorage';
-import { Case, FIR, Document } from '../types';
-import StatusBadge from '../components/UI/StatusBadge';
+import { useAuth } from '../../contexts/AuthContext';
+import { getCases, getFIRs } from '../../utils/localStorage';
+import { Case, FIR, Document } from '../../types';
+import StatusBadge from '../../components/UI/StatusBadge';
 
 const EvidenceList: React.FC = () => {
   const { caseId } = useParams<{ caseId: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const rolePath = user?.role ? (user.role === 'court_clerk' ? 'clerk' : user.role) : 'police';
   
   const allCases = getCases();
   const allFIRs = getFIRs();
@@ -37,7 +38,7 @@ const EvidenceList: React.FC = () => {
           <FileText className="h-12 w-12 mx-auto text-gray-500 mb-4" />
           <p className="text-gray-400">The requested case could not be found.</p>
           <button 
-            onClick={() => navigate('/cases')}
+            onClick={() => navigate(`/${rolePath}/cases`)}
             className="mt-4 inline-flex items-center px-4 py-2 border border-gray-600 rounded-md text-sm font-medium text-gray-300 hover:bg-gray-700"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
@@ -272,14 +273,14 @@ const EvidenceList: React.FC = () => {
           <h3 className="text-lg font-medium text-white mb-4">Case Actions</h3>
           <div className="flex flex-wrap gap-2">
             <Link 
-              to={`/cases/${currentCase.id}`}
+              to={`/${rolePath}/cases/${currentCase.id}`}
               className="inline-flex items-center px-3 py-2 text-sm font-medium rounded border border-gray-600 text-gray-300 hover:bg-gray-700"
             >
               <FileText className="h-4 w-4 mr-1" />
               View Case
             </Link>
             <Link 
-              to={`/documents?caseId=${currentCase.id}`}
+              to={`/${rolePath}/documents?caseId=${currentCase.id}`}
               className="inline-flex items-center px-3 py-2 text-sm font-medium rounded border border-gray-600 text-gray-300 hover:bg-gray-700"
             >
               <FileText className="h-4 w-4 mr-1" />

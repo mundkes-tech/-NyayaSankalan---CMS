@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { FileText, Upload, Plus } from 'lucide-react';
 import { FIR } from '../types';
-import { addFIR, addCase } from '../utils/localStorage';
-import { useAuth } from '../contexts/AuthContext';
+import { addFIR, addCase } from '../../utils/localStorage';
+import { useAuth } from '../../contexts/AuthContext';
 import toast from 'react-hot-toast';
-import Modal from '../components/UI/Modal';
+import Modal from '../../components/UI/Modal';
 
 const FIRIntake: React.FC = () => {
   const { user } = useAuth();

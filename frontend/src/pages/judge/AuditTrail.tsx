@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Shield, Search, Filter, Eye, Download } from 'lucide-react';
-import { getAuditLogs } from '../utils/localStorage';
-import { useAuth } from '../contexts/AuthContext';
-import { AuditLog } from '../types';
+import { getAuditLogs } from '../../utils/localStorage';
+import { useAuth } from '../../contexts/AuthContext';
+import { AuditLog } from '../../types';
 
 const AuditTrail: React.FC = () => {
   const { user } = useAuth();

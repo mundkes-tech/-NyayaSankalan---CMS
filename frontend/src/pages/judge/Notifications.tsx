@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Bell, CheckCircle, AlertTriangle, Info, X, Filter, Search } from 'lucide-react';
-import { getNotifications, addNotification } from '../utils/localStorage';
-import { useAuth } from '../contexts/AuthContext';
-import { Notification } from '../types';
+import { getNotifications, addNotification } from '../../utils/localStorage';
+import { useAuth } from '../../contexts/AuthContext';
+import { Notification } from '../../types';
 
 const Notifications: React.FC = () => {
   const { user } = useAuth();
