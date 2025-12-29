@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from 'react';
+import { useAuth } from '../../context/AuthContext';
+import { UserRole } from '../../types/api.types';
 import { documentRequestsApi } from '../../api/documentRequests.api';
 import { DocumentRequest } from '../../types/api.types';
 import { Card } from '../../components/ui/Card';
@@ -7,6 +9,7 @@ import { Button } from '../../components/ui/Button';
 export const DocumentRequests: React.FC = () => {
   const [requests, setRequests] = useState<DocumentRequest[]>([]);
   const [loading, setLoading] = useState(false); // kept for future UX improvements (disable buttons)
+  const { user } = useAuth();
 
   const load = async () => {
     setLoading(true);
@@ -50,6 +53,10 @@ export const DocumentRequests: React.FC = () => {
               <div className="text-sm text-gray-600">{r.requestReason} — Requested by {r.requester?.name}</div>
             </div>
             <div className="space-x-2">
+              <Button variant="ghost" onClick={() => {
+                const base = (user?.role === UserRole.SHO) ? '/sho' : (user?.role === UserRole.POLICE) ? '/police' : (user?.role === UserRole.COURT_CLERK) ? '/court' : '/judge';
+                window.open(`${base}/cases/${r.caseId}`, '_blank');
+              }}>View Case</Button>
               <Button variant="secondary" onClick={() => approve(r.id)} disabled={loading}>Approve</Button>
               <Button variant="danger" onClick={() => reject(r.id)} disabled={loading}>Reject</Button>
             </div>

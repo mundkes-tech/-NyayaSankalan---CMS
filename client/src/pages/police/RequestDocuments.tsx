@@ -103,7 +103,8 @@ export const RequestDocuments: React.FC = () => {
                 <div className="font-medium">{r.documentType}</div>
                 <div className="text-sm text-gray-600">{r.requestReason}</div>
               </div>
-              <div className="text-sm">
+              <div className="text-sm flex items-center space-x-3">
+                <Button variant="ghost" onClick={() => window.open(`/police/cases/${r.caseId}`, '_blank')}>View Case</Button>
                 <span className="px-2 py-1 bg-gray-100 rounded">{r.status}</span>
                 {r.status === 'ISSUED' && (
                   <a href={r.issuedFileUrl || undefined} className="ml-3 text-blue-600" target="_blank" rel="noreferrer">Download</a>

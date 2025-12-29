@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from 'react';
+import { useAuth } from '../../context/AuthContext';
+import { UserRole } from '../../types/api.types';
 import { documentRequestsApi } from '../../api/documentRequests.api';
 import { DocumentRequest } from '../../types/api.types';
 import { Card } from '../../components/ui/Card';
@@ -7,6 +9,7 @@ import { Button } from '../../components/ui/Button';
 export const ApprovedRequests: React.FC = () => {
   const [requests, setRequests] = useState<DocumentRequest[]>([]);
   const [loading, setLoading] = useState(false); // kept for future UX improvements (disable buttons)
+  const { user } = useAuth();
 
   const load = async () => {
     setLoading(true);
@@ -47,7 +50,11 @@ export const ApprovedRequests: React.FC = () => {
               <div className="font-medium">{r.documentType} — Case {r.caseId}</div>
               <div className="text-sm text-gray-600">{r.requestReason} — Requested by {r.requester?.name}</div>
             </div>
-            <div>
+            <div className="space-x-2">
+              <Button variant="ghost" onClick={() => {
+                const base = (user?.role === UserRole.JUDGE) ? '/judge' : '/court';
+                window.open(`${base}/cases/${r.caseId}`, '_blank');
+              }}>View Case</Button>
               <Button onClick={() => issue(r.id)} disabled={loading}>Upload & Issue</Button>
             </div>
           </div>
