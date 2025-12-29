@@ -318,6 +318,40 @@ Authorization: Bearer <token>
 #### 34. Approve Request (SHO)
 ```http
 POST /api/document-requests/:id/approve
+```
+
+---
+
+### Case Reopen Requests (NEW)
+
+POST /api/cases/:caseId/reopen-request
+- Role: POLICE
+- Body: { policeReason: string }
+- Creates a new request to re-open an archived case. Police must be assigned to the case. Only one active request per case is allowed.
+- Response: { success: true, data: CaseReopenRequest }
+
+GET /api/case-reopen/my-requests
+- Role: POLICE
+- Returns the list of re-open requests submitted by the authenticated user.
+- Response: { success: true, data: CaseReopenRequest[] }
+
+GET /api/case-reopen/pending
+- Role: JUDGE
+- Returns pending requests for cases associated with the judge's court (latest submission court match).
+- Response: { success: true, data: CaseReopenRequest[] }
+
+POST /api/case-reopen/:id/approve
+- Role: JUDGE
+- Body: { judgeNote: string }
+- Approves the request: unarchives the case, sets case state to UNDER_INVESTIGATION, auto-assigns to the last assigned officer, writes timeline and audit logs.
+- Response: { success: true, data: CaseReopenRequest }
+
+POST /api/case-reopen/:id/reject
+- Role: JUDGE
+- Body: { reason: string }
+- Rejects the request and records judicial note.
+- Response: { success: true, data: CaseReopenRequest }
+
 Authorization: Bearer <token>
 ```
 

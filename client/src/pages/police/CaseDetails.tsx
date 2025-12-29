@@ -190,6 +190,43 @@ export const PoliceCaseDetails: React.FC = () => {
     }
   };
 
+  // Case reopen states
+  const [showReopenForm, setShowReopenForm] = useState(false);
+  const [reopenReason, setReopenReason] = useState('');
+  const [reopenLoading, setReopenLoading] = useState(false);
+  const [myReopenRequests, setMyReopenRequests] = useState<any[]>([]);
+
+  const loadMyReopenRequests = async () => {
+    try {
+      const res = await (await import('../../api/caseReopen.api')).caseReopenApi.getMyRequests();
+      setMyReopenRequests(res.filter((r: any) => r.caseId === id));
+    } catch (err) {
+      // ignore
+    }
+  };
+
+  const submitReopenRequest = async () => {
+    if (!reopenReason.trim()) {
+      toast.error('Please provide a reason');
+      return;
+    }
+
+    if (!window.confirm('Requesting case re-open requires judicial approval. Proceed?')) return;
+
+    try {
+      setReopenLoading(true);
+      await (await import('../../api/caseReopen.api')).caseReopenApi.requestReopen(id!, reopenReason);
+      toast.success('Re-open request submitted');
+      setShowReopenForm(false);
+      setReopenReason('');
+      await loadMyReopenRequests();
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Failed to submit request');
+    } finally {
+      setReopenLoading(false);
+    }
+  };
+
   if (isLoading) return <Loader />;
   if (error) return <ErrorMessage message={error} retry={fetchCaseDetails} />;
   if (!caseData) return <ErrorMessage message="Case not found" />;
@@ -236,6 +273,47 @@ export const PoliceCaseDetails: React.FC = () => {
               You can add evidence, witnesses, and accused to this case.
             </p>
           </div>
+        )}
+
+        {/* Re-open request (visible only for archived cases) */}
+        {isAssignedToMe && currentState === CaseState.ARCHIVED && (
+          <Card title="Request Case Re-Open" className="border-yellow-200">
+            <p className="text-sm text-gray-600 mb-2">Case re-opening requires judicial approval. Use this form to request re-opening.</p>
+
+            {!showReopenForm && (
+              <div className="flex justify-between items-center">
+                <div className="text-sm text-gray-700">You can request the court to re-open this archived case.</div>
+                <div>
+                  <Button variant="secondary" onClick={() => { setShowReopenForm(true); loadMyReopenRequests(); }}>Request Case Re-Open</Button>
+                </div>
+              </div>
+            )}
+
+            {showReopenForm && (
+              <div className="space-y-3">
+                <Textarea label="Reason" value={reopenReason} onChange={(e) => setReopenReason(e.target.value)} />
+                <div className="flex justify-end space-x-2">
+                  <Button variant="ghost" onClick={() => setShowReopenForm(false)}>Cancel</Button>
+                  <Button onClick={submitReopenRequest} isLoading={reopenLoading}>Submit Request</Button>
+                </div>
+              </div>
+            )}
+
+            {/* Show my requests for this case */}
+            <div className="mt-4">
+              <h4 className="font-medium mb-2">My Re-open Requests</h4>
+              {myReopenRequests.length === 0 && <div className="text-sm text-gray-600">No re-open requests for this case</div>}
+              {myReopenRequests.map((r) => (
+                <div key={r.id} className="flex justify-between items-center py-2 border-b">
+                  <div>
+                    <div className="font-medium">{r.status}</div>
+                    <div className="text-sm text-gray-600">{r.policeReason}</div>
+                  </div>
+                  <div className="text-sm text-gray-600">{r.decidedAt ? new Date(r.decidedAt).toLocaleString() : new Date(r.createdAt).toLocaleString()}</div>
+                </div>
+              ))}
+            </div>
+          </Card>
         )}
 
         {/* Case Overview */}

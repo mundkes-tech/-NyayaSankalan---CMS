@@ -315,6 +315,26 @@ export interface DocumentRequest {
   issuer?: User | null;
 }
 
+export enum CaseReopenStatus {
+  REQUESTED = 'REQUESTED',
+  APPROVED = 'APPROVED',
+  REJECTED = 'REJECTED',
+}
+
+export interface CaseReopenRequest {
+  id: string;
+  caseId: string;
+  requestedBy: string;
+  reviewedBy?: string | null;
+  status: CaseReopenStatus;
+  policeReason: string;
+  judgeNote?: string | null;
+  createdAt: string;
+  decidedAt?: string | null;
+  requester?: User | null;
+  reviewer?: User | null;
+}
+
 // ====================================================================
 // COURT TYPES
 // ====================================================================

@@ -79,6 +79,9 @@ export const Navbar: React.FC = () => {
                   <Link to="/police/request-documents" className="text-sm text-gray-700 hover:text-blue-600">
                     Request Documents
                   </Link>
+                  <Link to="/police/case-reopen" className="text-sm text-gray-700 hover:text-blue-600">
+                    Re-open Requests
+                  </Link>
                 </>
               )}
 
@@ -117,6 +120,9 @@ export const Navbar: React.FC = () => {
                   </Link>
                   <Link to="/judge/cases" className="text-sm text-gray-700 hover:text-blue-600">
                     Cases
+                  </Link>
+                  <Link to="/judge/reopen-requests" className="text-sm text-gray-700 hover:text-blue-600">
+                    Re-open Requests
                   </Link>
                 </>
               )}

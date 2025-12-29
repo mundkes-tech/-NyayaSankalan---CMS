@@ -11,6 +11,7 @@ import courtRoutes from './modules/court/court.routes';
 import bailRoutes from './modules/bail/bail.routes';
 import auditRoutes from './modules/audit/audit.routes';
 import documentRequestRoutes from './modules/document-requests/document-requests.routes';
+import caseReopenRoutes from './modules/case-reopen/case-reopen.routes';
 import timelineRoutes from './modules/timeline/timeline.routes';
 import { errorHandler } from './middleware/error.middleware';
 import { ApiError } from './utils/ApiError';
@@ -80,6 +81,7 @@ export const createApp = (): Application => {
   app.use('/api', bailRoutes); // /api/cases/:caseId/bail-applications
   app.use('/api', auditRoutes); // /api/cases/:caseId/audit-logs
   app.use('/api/document-requests', documentRequestRoutes); // /api/document-requests
+  app.use('/api', caseReopenRoutes);
   app.use('/api', timelineRoutes); // /api/cases/:caseId/timeline
 
   // 404 handler

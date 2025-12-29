@@ -28,6 +28,10 @@ import { ApprovedRequests } from './pages/court/ApprovedRequests';
 import { JudgeDashboard } from './pages/judge/Dashboard';
 import { JudgeCases } from './pages/judge/Cases';
 import { JudgeCaseDetails } from './pages/judge/CaseDetails';
+import { ReopenRequests } from './pages/judge/ReopenRequests';
+
+// Police pages
+import { MyReopenRequests } from './pages/police/MyReopenRequests';
 
 function App() {
   return (
@@ -100,6 +104,21 @@ function App() {
                     <Route path="dashboard" element={<JudgeDashboard />} />
                     <Route path="cases" element={<JudgeCases />} />
                     <Route path="cases/:id" element={<JudgeCaseDetails />} />
+                    <Route path="reopen-requests" element={<ReopenRequests />} />
+                  </Routes>
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Police - reopen requests listing */}
+          <Route
+            path="/police/case-reopen"
+            element={
+              <ProtectedRoute allowedRoles={[UserRole.POLICE]}>
+                <Layout>
+                  <Routes>
+                    <Route path="" element={<MyReopenRequests />} />
                   </Routes>
                 </Layout>
               </ProtectedRoute>
