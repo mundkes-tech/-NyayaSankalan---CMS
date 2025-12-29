@@ -15,6 +15,8 @@ export interface CreateEvidenceRequest {
 
 export interface CreateWitnessRequest {
   name: string;
+  contact?: string;
+  address?: string;
   statementFileUrl: string;
 }
 
@@ -153,6 +155,8 @@ export class InvestigationService {
         data: {
           caseId,
           name: data.name,
+          contact: data.contact,
+          address: data.address,
           statementFileUrl: data.statementFileUrl,
         },
       });

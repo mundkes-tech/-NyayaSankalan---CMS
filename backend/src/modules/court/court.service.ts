@@ -12,7 +12,7 @@ export interface IntakeRequest {
 
 export interface CourtActionRequest {
   actionType: CourtActionType;
-  orderFileUrl: string;
+  orderFileUrl?: string;
   actionDate: string;
 }
 
@@ -45,6 +45,7 @@ export class CourtService {
 
     // Check case state allows submission
     const allowedStates: CaseState[] = [
+      CaseState.INVESTIGATION_COMPLETED,
       CaseState.CHARGE_SHEET_PREPARED,
       CaseState.RESUBMITTED_TO_COURT,
     ];

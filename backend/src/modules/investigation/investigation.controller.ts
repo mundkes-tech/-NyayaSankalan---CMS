@@ -123,17 +123,47 @@ export const getEvidence = asyncHandler(async (req: Request, res: Response) => {
 
 /**
  * POST /api/cases/:caseId/witnesses
+ * Now supports file upload via multipart/form-data
  */
 export const createWitness = asyncHandler(async (req: Request, res: Response) => {
   const { caseId } = req.params;
   const userId = req.user!.id;
+  const userRole = req.user!.role;
   const organizationId = req.user!.organizationId;
 
   if (!organizationId) {
     throw ApiError.badRequest('User must be associated with a police station');
   }
 
-  const witness = await investigationService.createWitness(caseId, req.body, userId, organizationId);
+  // Validate police can upload (blocked after court submission)
+  await validatePoliceCanUpload(caseId, userRole);
+
+  let statementFileUrl: string = req.body.statementFileUrl || '';
+
+  // Handle file upload if present
+  if (req.file) {
+    const uploadResult = await uploadToCloudinary(req.file, {
+      folder: CloudinaryFolder.DOCUMENTS,
+    });
+    statementFileUrl = uploadResult.secure_url;
+
+    // Log file upload
+    await logFileUpload(userId, 'WITNESS_STATEMENT', caseId, req.file.originalname);
+  }
+
+  // If no file uploaded and no URL, use statement text or default
+  if (!statementFileUrl) {
+    statementFileUrl = req.body.statement || 'Statement pending';
+  }
+
+  const witnessData = {
+    name: req.body.name,
+    contact: req.body.contact,
+    address: req.body.address,
+    statementFileUrl,
+  };
+
+  const witness = await investigationService.createWitness(caseId, witnessData, userId, organizationId);
 
   res.status(201).json({
     success: true,

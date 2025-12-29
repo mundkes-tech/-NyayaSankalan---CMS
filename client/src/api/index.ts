@@ -6,4 +6,5 @@ export { documentApi } from './document.api';
 export { courtApi } from './court.api';
 export { bailApi } from './bail.api';
 export { timelineApi } from './timeline.api';
+export { organizationApi } from './organization.api';
 export { default as apiClient } from './axios';

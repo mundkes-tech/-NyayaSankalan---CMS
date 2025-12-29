@@ -6,10 +6,10 @@ import { Button } from '../../components/ui/Button';
 import { Badge } from '../../components/ui/Badge';
 import { Loader } from '../../components/common/Loader';
 import { ErrorMessage } from '../../components/common/ErrorMessage';
-import { EmptyState } from '../../components/common/EmptyState';
 import { caseApi } from '../../api';
 import type { Case } from '../../types/api.types';
 import { CaseState } from '../../types/api.types';
+import { getCaseStateBadgeVariant, getCaseStateLabel } from '../../utils/caseState';
 
 export const PoliceDashboard: React.FC = () => {
   const [cases, setCases] = useState<Case[]>([]);
@@ -81,16 +81,26 @@ export const PoliceDashboard: React.FC = () => {
       </div>
 
       {/* Recent Cases */}
-      <Card title="Recent Cases">
+      <Card title="My Assigned Cases">
         {cases.length === 0 ? (
-          <EmptyState
-            message="No cases assigned yet"
-            action={
+          <div className="text-center py-8">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 max-w-md mx-auto">
+              <p className="text-blue-800 font-medium text-lg mb-2">
+                No Cases Assigned Yet
+              </p>
+              <p className="text-blue-600 text-sm mb-4">
+                Cases you create will appear here once the SHO assigns them to you for investigation.
+              </p>
+              <p className="text-gray-500 text-xs">
+                💡 Tip: After creating an FIR, ask your SHO to assign the case to you.
+              </p>
+            </div>
+            <div className="mt-6">
               <Link to="/police/create-fir">
-                <Button variant="primary">Create Your First FIR</Button>
+                <Button variant="primary">+ Create New FIR</Button>
               </Link>
-            }
-          />
+            </div>
+          </div>
         ) : (
           <div className="space-y-4">
             {cases.slice(0, 5).map((c) => {
@@ -119,15 +129,8 @@ export const PoliceDashboard: React.FC = () => {
                         )}
                       </div>
                     </div>
-                    <Badge
-                      variant={
-                        state === CaseState.FIR_REGISTERED ? 'info' :
-                        state === CaseState.UNDER_INVESTIGATION ? 'warning' :
-                        state === CaseState.SUBMITTED_TO_COURT ? 'success' :
-                        'default'
-                      }
-                    >
-                      {state.replace(/_/g, ' ')}
+                    <Badge variant={getCaseStateBadgeVariant(state)}>
+                      {getCaseStateLabel(state)}
                     </Badge>
                   </div>
                 </Link>

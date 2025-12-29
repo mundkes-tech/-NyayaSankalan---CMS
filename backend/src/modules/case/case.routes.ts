@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { body } from 'express-validator';
-import { getMyCases, getAllCases, getCaseById, assignCase } from './case.controller';
+import { getMyCases, getAllCases, getCaseById, assignCase, completeInvestigation } from './case.controller';
 import { archiveCase } from './case-archive.controller';
 import { authenticate } from '../../middleware/auth.middleware';
 import { isPolice, requireRole, isSHO, allowAll } from '../../middleware/role.middleware';
@@ -42,6 +42,17 @@ router.post(
   isSHO,
   [body('officerId').notEmpty().withMessage('Officer ID is required'), validate],
   assignCase
+);
+
+/**
+ * POST /api/cases/:caseId/complete-investigation
+ * Mark investigation as complete - POLICE only (must be assigned to case)
+ */
+router.post(
+  '/:caseId/complete-investigation',
+  authenticate,
+  isPolice,
+  completeInvestigation
 );
 
 /**

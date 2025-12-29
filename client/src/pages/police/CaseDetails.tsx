@@ -1,20 +1,48 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import { Header } from '../../components/layout/Header';
 import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { Badge } from '../../components/ui/Badge';
+import { Input } from '../../components/ui/Input';
+import { Textarea } from '../../components/ui/Textarea';
+import { Select } from '../../components/ui/Select';
 import { Loader } from '../../components/common/Loader';
 import { ErrorMessage } from '../../components/common/ErrorMessage';
-import { EmptyState } from '../../components/common/EmptyState';
-import { caseApi } from '../../api';
+import { caseApi, investigationApi } from '../../api';
+import { useAuth } from '../../context/AuthContext';
 import type { Case } from '../../types/api.types';
+import { CaseState, EvidenceCategory, AccusedStatus } from '../../types/api.types';
+import { getCaseStateBadgeVariant, getCaseStateLabel, isLockedForPolice } from '../../utils/caseState';
 
 export const PoliceCaseDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const { user } = useAuth();
   const [caseData, setCaseData] = useState<Case | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Form states
+  const [showEvidenceForm, setShowEvidenceForm] = useState(false);
+  const [showWitnessForm, setShowWitnessForm] = useState(false);
+  const [showAccusedForm, setShowAccusedForm] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Evidence form
+  const [evidenceCategory, setEvidenceCategory] = useState<EvidenceCategory>(EvidenceCategory.PHOTO);
+  const [evidenceDescription, setEvidenceDescription] = useState('');
+  const [evidenceFile, setEvidenceFile] = useState<File | null>(null);
+
+  // Witness form
+  const [witnessName, setWitnessName] = useState('');
+  const [witnessContact, setWitnessContact] = useState('');
+  const [witnessAddress, setWitnessAddress] = useState('');
+  const [witnessStatement, setWitnessStatement] = useState('');
+
+  // Accused form
+  const [accusedName, setAccusedName] = useState('');
+  const [accusedAddress, setAccusedAddress] = useState('');
 
   useEffect(() => {
     if (id) {
@@ -35,12 +63,119 @@ export const PoliceCaseDetails: React.FC = () => {
     }
   };
 
+  // Check if current user is assigned to this case
+  const isAssignedToMe = caseData?.assignments?.some(
+    a => !a.unassignedAt && a.assignedTo === user?.id
+  );
+
+  // Check if case can be edited
+  const currentState = caseData?.state?.currentState || 'UNKNOWN';
+  const canEdit = isAssignedToMe && (
+    currentState === CaseState.CASE_ASSIGNED ||
+    currentState === CaseState.UNDER_INVESTIGATION
+  );
+
+  const handleAddEvidence = async () => {
+    if (!evidenceDescription.trim()) {
+      toast.error('Please provide evidence description');
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      await investigationApi.createEvidence(id!, {
+        category: evidenceCategory as EvidenceCategory,
+        description: evidenceDescription,
+        file: evidenceFile || undefined,
+      });
+      toast.success('Evidence added successfully');
+      setShowEvidenceForm(false);
+      setEvidenceCategory(EvidenceCategory.PHOTO);
+      setEvidenceDescription('');
+      setEvidenceFile(null);
+      fetchCaseDetails();
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Failed to add evidence');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleAddWitness = async () => {
+    if (!witnessName.trim() || !witnessStatement.trim()) {
+      toast.error('Please provide witness name and statement');
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      await investigationApi.createWitness(id!, {
+        name: witnessName,
+        contact: witnessContact || undefined,
+        address: witnessAddress || undefined,
+        statement: witnessStatement,
+      });
+      toast.success('Witness added successfully');
+      setShowWitnessForm(false);
+      setWitnessName('');
+      setWitnessContact('');
+      setWitnessAddress('');
+      setWitnessStatement('');
+      fetchCaseDetails();
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Failed to add witness');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleAddAccused = async () => {
+    if (!accusedName.trim()) {
+      toast.error('Please provide accused name');
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      await investigationApi.createAccused(id!, {
+        name: accusedName,
+        address: accusedAddress || undefined,
+        status: AccusedStatus.ABSCONDING,
+      });
+      toast.success('Accused added successfully');
+      setShowAccusedForm(false);
+      setAccusedName('');
+      setAccusedAddress('');
+      fetchCaseDetails();
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Failed to add accused');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleCompleteInvestigation = async () => {
+    if (!window.confirm('Are you sure you want to mark this investigation as complete? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      await caseApi.completeInvestigation(id!);
+      toast.success('Investigation marked as complete! SHO can now submit this case to court.');
+      fetchCaseDetails();
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Failed to complete investigation');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   if (isLoading) return <Loader />;
   if (error) return <ErrorMessage message={error} retry={fetchCaseDetails} />;
   if (!caseData) return <ErrorMessage message="Case not found" />;
 
   const fir = caseData.fir;
-  const currentState = caseData.state?.currentState || 'UNKNOWN';
 
   return (
     <>
@@ -50,6 +185,40 @@ export const PoliceCaseDetails: React.FC = () => {
       />
 
       <div className="space-y-6">
+        {/* Assignment Status Banner */}
+        {!isAssignedToMe && (
+          <div className="bg-yellow-50 border border-yellow-300 rounded-lg p-4">
+            <p className="text-yellow-800 font-medium">
+              ⚠️ You are viewing this case in read-only mode
+            </p>
+            <p className="text-yellow-600 text-sm mt-1">
+              You are not currently assigned to this case. Contact your SHO for assignment.
+            </p>
+          </div>
+        )}
+
+        {isAssignedToMe && !canEdit && (
+          <div className="bg-gray-50 border border-gray-300 rounded-lg p-4">
+            <p className="text-gray-800 font-medium">
+              📋 Case is locked for editing
+            </p>
+            <p className="text-gray-600 text-sm mt-1">
+              Current state: {currentState.replace(/_/g, ' ')}. Editing is not allowed in this state.
+            </p>
+          </div>
+        )}
+
+        {canEdit && (
+          <div className="bg-green-50 border border-green-300 rounded-lg p-4">
+            <p className="text-green-800 font-medium">
+              ✓ You are assigned to this case
+            </p>
+            <p className="text-green-600 text-sm mt-1">
+              You can add evidence, witnesses, and accused to this case.
+            </p>
+          </div>
+        )}
+
         {/* Case Overview */}
         <Card title="Case Information">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -59,15 +228,8 @@ export const PoliceCaseDetails: React.FC = () => {
             </div>
             <div>
               <p className="text-sm text-gray-500">Case State</p>
-              <Badge
-                variant={
-                  currentState === 'FIR_REGISTERED' ? 'info' :
-                  currentState === 'UNDER_INVESTIGATION' ? 'warning' :
-                  currentState === 'SUBMITTED_TO_COURT' ? 'success' :
-                  'default'
-                }
-              >
-                {currentState.replace(/_/g, ' ')}
+              <Badge variant={getCaseStateBadgeVariant(currentState)}>
+                {getCaseStateLabel(currentState)}
               </Badge>
             </div>
             <div>
@@ -79,10 +241,6 @@ export const PoliceCaseDetails: React.FC = () => {
                   year: 'numeric',
                 })}
               </p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-500">Archived</p>
-              <p className="font-semibold">{caseData.isArchived ? 'Yes' : 'No'}</p>
             </div>
           </div>
         </Card>
@@ -114,44 +272,189 @@ export const PoliceCaseDetails: React.FC = () => {
                 </div>
               )}
             </div>
-            {fir.firDocumentUrl && (
-              <div className="mt-4 pt-4 border-t">
-                <a
-                  href={fir.firDocumentUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center text-blue-600 hover:text-blue-800 hover:underline"
+          </Card>
+        )}
+
+        {/* Investigation Actions */}
+        {canEdit && (
+          <Card title="🔍 Investigation Actions">
+            <div className="flex flex-wrap gap-3">
+              <Button
+                variant="primary"
+                onClick={() => setShowEvidenceForm(!showEvidenceForm)}
+              >
+                + Add Evidence
+              </Button>
+              <Button
+                variant="primary"
+                onClick={() => setShowWitnessForm(!showWitnessForm)}
+              >
+                + Add Witness
+              </Button>
+              <Button
+                variant="primary"
+                onClick={() => setShowAccusedForm(!showAccusedForm)}
+              >
+                + Add Accused
+              </Button>
+            </div>
+
+            {/* Mark Investigation Complete */}
+            <div className="mt-6 pt-4 border-t border-gray-200">
+              <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                <h4 className="font-semibold text-orange-800 mb-2">✅ Complete Investigation</h4>
+                <p className="text-sm text-orange-600 mb-3">
+                  Once you have collected all evidence, recorded all witness statements, and identified all accused, 
+                  mark the investigation as complete. The SHO will then review and submit the case to court.
+                </p>
+                <Button
+                  variant="primary"
+                  onClick={handleCompleteInvestigation}
+                  isLoading={isSubmitting}
                 >
-                  📄 View FIR Document →
-                </a>
+                  Mark Investigation Complete
+                </Button>
+              </div>
+            </div>
+
+            {/* Evidence Form */}
+            {showEvidenceForm && (
+              <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                <h4 className="font-semibold mb-3">Add Evidence</h4>
+                <div className="space-y-3">
+                  <Select
+                    label="Category"
+                    value={evidenceCategory}
+                    onChange={(e) => setEvidenceCategory(e.target.value as EvidenceCategory)}
+                    options={[
+                      { value: EvidenceCategory.PHOTO, label: 'Photo' },
+                      { value: EvidenceCategory.REPORT, label: 'Report' },
+                      { value: EvidenceCategory.FORENSIC, label: 'Forensic' },
+                      { value: EvidenceCategory.STATEMENT, label: 'Statement' },
+                    ]}
+                  />
+                  <Textarea
+                    label="Description"
+                    placeholder="Describe the evidence..."
+                    value={evidenceDescription}
+                    onChange={(e) => setEvidenceDescription(e.target.value)}
+                    rows={3}
+                  />
+                  <Input
+                    label="File (Optional)"
+                    type="file"
+                    onChange={(e) => setEvidenceFile(e.target.files?.[0] || null)}
+                  />
+                  <div className="flex gap-2">
+                    <Button
+                      variant="primary"
+                      onClick={handleAddEvidence}
+                      isLoading={isSubmitting}
+                    >
+                      Save Evidence
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      onClick={() => setShowEvidenceForm(false)}
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Witness Form */}
+            {showWitnessForm && (
+              <div className="mt-4 p-4 bg-green-50 rounded-lg border border-green-200">
+                <h4 className="font-semibold mb-3">Add Witness</h4>
+                <div className="space-y-3">
+                  <Input
+                    label="Name"
+                    placeholder="Witness full name"
+                    value={witnessName}
+                    onChange={(e) => setWitnessName(e.target.value)}
+                    required
+                  />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <Input
+                      label="Contact (Optional)"
+                      placeholder="Phone number"
+                      value={witnessContact}
+                      onChange={(e) => setWitnessContact(e.target.value)}
+                    />
+                    <Input
+                      label="Address (Optional)"
+                      placeholder="Full address"
+                      value={witnessAddress}
+                      onChange={(e) => setWitnessAddress(e.target.value)}
+                    />
+                  </div>
+                  <Textarea
+                    label="Statement"
+                    placeholder="Witness statement..."
+                    value={witnessStatement}
+                    onChange={(e) => setWitnessStatement(e.target.value)}
+                    rows={4}
+                    required
+                  />
+                  <div className="flex gap-2">
+                    <Button
+                      variant="primary"
+                      onClick={handleAddWitness}
+                      isLoading={isSubmitting}
+                    >
+                      Save Witness
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      onClick={() => setShowWitnessForm(false)}
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Accused Form */}
+            {showAccusedForm && (
+              <div className="mt-4 p-4 bg-orange-50 rounded-lg border border-orange-200">
+                <h4 className="font-semibold mb-3">Add Accused</h4>
+                <div className="space-y-3">
+                  <Input
+                    label="Name"
+                    placeholder="Accused full name"
+                    value={accusedName}
+                    onChange={(e) => setAccusedName(e.target.value)}
+                    required
+                  />
+                  <Input
+                    label="Address (Optional)"
+                    placeholder="Last known address"
+                    value={accusedAddress}
+                    onChange={(e) => setAccusedAddress(e.target.value)}
+                  />
+                  <div className="flex gap-2">
+                    <Button
+                      variant="primary"
+                      onClick={handleAddAccused}
+                      isLoading={isSubmitting}
+                    >
+                      Save Accused
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      onClick={() => setShowAccusedForm(false)}
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                </div>
               </div>
             )}
           </Card>
         )}
-
-        {/* Current Assignments */}
-        <Card title="Case Assignments">
-          {caseData.assignments && caseData.assignments.length > 0 ? (
-            <div className="space-y-3">
-              {caseData.assignments.map((assignment) => (
-                <div
-                  key={assignment.id}
-                  className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
-                >
-                  <div>
-                    <p className="font-medium">{assignment.assignedUser?.name || 'Unknown'}</p>
-                    <p className="text-sm text-gray-500">{assignment.assignmentReason}</p>
-                  </div>
-                  <p className="text-sm text-gray-400">
-                    {new Date(assignment.assignedAt).toLocaleDateString()}
-                  </p>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <EmptyState message="No assignments yet" />
-          )}
-        </Card>
 
         {/* Investigation Summary */}
         <Card title="Investigation Summary">
@@ -191,7 +494,7 @@ export const PoliceCaseDetails: React.FC = () => {
                 <div key={ev.id} className="flex items-center justify-between p-3 border rounded-lg">
                   <div>
                     <Badge variant="info">{ev.category}</Badge>
-                    <p className="text-sm text-gray-500 mt-1">
+                    <p className="text-xs text-gray-400">
                       Uploaded: {new Date(ev.uploadedAt).toLocaleDateString()}
                     </p>
                   </div>
@@ -220,6 +523,13 @@ export const PoliceCaseDetails: React.FC = () => {
                   <p className="font-medium">{w.name}</p>
                   {w.contact && <p className="text-sm text-gray-500">📞 {w.contact}</p>}
                   {w.address && <p className="text-sm text-gray-500">📍 {w.address}</p>}
+                  {w.statementFileUrl && (
+                    w.statementFileUrl.startsWith('http') ? (
+                      <a href={w.statementFileUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline text-sm">View Statement →</a>
+                    ) : (
+                      <p className="text-sm text-gray-600 mt-2 italic">"{w.statementFileUrl}"</p>
+                    )
+                  )}
                 </div>
               ))}
             </div>
@@ -232,7 +542,10 @@ export const PoliceCaseDetails: React.FC = () => {
             <div className="space-y-2">
               {caseData.accused.map((a) => (
                 <div key={a.id} className="flex items-center justify-between p-3 border rounded-lg">
-                  <p className="font-medium">{a.name}</p>
+                  <div>
+                    <p className="font-medium">{a.name}</p>
+                    {a.address && <p className="text-sm text-gray-500">📍 {a.address}</p>}
+                  </div>
                   <Badge
                     variant={
                       a.status === 'ARRESTED' ? 'danger' :
@@ -252,6 +565,9 @@ export const PoliceCaseDetails: React.FC = () => {
         <div className="flex gap-4">
           <Link to="/police/my-cases">
             <Button variant="secondary">← Back to My Cases</Button>
+          </Link>
+          <Link to="/police/dashboard">
+            <Button variant="secondary">← Dashboard</Button>
           </Link>
         </div>
       </div>

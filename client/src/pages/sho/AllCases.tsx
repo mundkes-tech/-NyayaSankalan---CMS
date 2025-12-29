@@ -11,6 +11,7 @@ import { EmptyState } from '../../components/common/EmptyState';
 import { caseApi } from '../../api';
 import type { Case } from '../../types/api.types';
 import { CaseState } from '../../types/api.types';
+import { getCaseStateBadgeVariant, getCaseStateLabel } from '../../utils/caseState';
 
 export const SHOAllCases: React.FC = () => {
   const [cases, setCases] = useState<Case[]>([]);
@@ -49,21 +50,6 @@ export const SHOAllCases: React.FC = () => {
   if (isLoading) return <Loader />;
   if (error) return <ErrorMessage message={error} retry={fetchCases} />;
 
-  const getBadgeVariant = (state: string) => {
-    switch (state) {
-      case CaseState.FIR_REGISTERED:
-        return 'info';
-      case CaseState.UNDER_INVESTIGATION:
-      case CaseState.INVESTIGATION_COMPLETED:
-        return 'warning';
-      case CaseState.SUBMITTED_TO_COURT:
-      case CaseState.COURT_ACCEPTED:
-        return 'success';
-      default:
-        return 'default';
-    }
-  };
-
   return (
     <>
       <Header
@@ -81,9 +67,11 @@ export const SHOAllCases: React.FC = () => {
             options={[
               { value: 'ALL', label: 'All States' },
               { value: CaseState.FIR_REGISTERED, label: 'FIR Registered' },
+              { value: CaseState.CASE_ASSIGNED, label: 'Case Assigned' },
               { value: CaseState.UNDER_INVESTIGATION, label: 'Under Investigation' },
               { value: CaseState.INVESTIGATION_COMPLETED, label: 'Investigation Completed' },
               { value: CaseState.SUBMITTED_TO_COURT, label: 'Submitted to Court' },
+              { value: CaseState.COURT_ACCEPTED, label: 'Court Accepted' },
             ]}
           />
         </div>
@@ -138,8 +126,8 @@ export const SHOAllCases: React.FC = () => {
                         {c.fir?.sectionsApplied || '-'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <Badge variant={getBadgeVariant(state)}>
-                          {state.replace(/_/g, ' ')}
+                        <Badge variant={getCaseStateBadgeVariant(state)}>
+                          {getCaseStateLabel(state)}
                         </Badge>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm">

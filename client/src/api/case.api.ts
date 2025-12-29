@@ -60,4 +60,15 @@ export const caseApi = {
     const response = await apiClient.post<ApiResponse<Case>>(`/cases/${caseId}/archive`);
     return response.data.data!;
   },
+
+  /**
+   * POST /api/cases/:caseId/complete-investigation
+   * Mark investigation as complete (POLICE only)
+   */
+  completeInvestigation: async (caseId: string): Promise<{ caseId: string; previousState: string; newState: string }> => {
+    const response = await apiClient.post<ApiResponse<{ caseId: string; previousState: string; newState: string }>>(
+      `/cases/${caseId}/complete-investigation`
+    );
+    return response.data.data!;
+  },
 };

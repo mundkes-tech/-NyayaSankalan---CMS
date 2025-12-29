@@ -1,4 +1,5 @@
 import { prisma } from '../../prisma/client';
+import { UserRole } from '@prisma/client';
 
 export class OrganizationService {
   /**
@@ -38,5 +39,29 @@ export class OrganizationService {
     });
 
     return courts;
+  }
+
+  /**
+   * List police officers in a police station (for SHO to assign cases)
+   */
+  async getOfficersByStation(policeStationId: string) {
+    const officers = await prisma.user.findMany({
+      where: {
+        organizationId: policeStationId,
+        role: UserRole.POLICE,
+        isActive: true,
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        phone: true,
+      },
+      orderBy: {
+        name: 'asc',
+      },
+    });
+
+    return officers;
   }
 }

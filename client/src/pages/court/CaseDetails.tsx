@@ -12,6 +12,7 @@ import { EmptyState } from '../../components/common/EmptyState';
 import { caseApi, courtApi } from '../../api';
 import type { Case, CourtAction } from '../../types/api.types';
 import { CaseState } from '../../types/api.types';
+import { getCaseStateBadgeVariant, getCaseStateLabel, canIntakeCase } from '../../utils/caseState';
 
 export const CourtCaseDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -66,28 +67,13 @@ export const CourtCaseDetails: React.FC = () => {
 
   const fir = caseData.fir;
   const currentState = caseData.state?.currentState || 'UNKNOWN';
-  const canIntake = currentState === CaseState.SUBMITTED_TO_COURT;
-
-  const getBadgeVariant = (state: string) => {
-    switch (state) {
-      case CaseState.SUBMITTED_TO_COURT:
-        return 'warning';
-      case CaseState.COURT_ACCEPTED:
-        return 'success';
-      case CaseState.TRIAL_ONGOING:
-        return 'info';
-      case CaseState.DISPOSED:
-        return 'default';
-      default:
-        return 'default';
-    }
-  };
+  const canIntake = canIntakeCase(currentState);
 
   return (
     <>
       <Header
         title={`Case: ${fir?.firNumber || caseData.id.slice(0, 8)}`}
-        subtitle={`Status: ${currentState.replace(/_/g, ' ')}`}
+        subtitle={`Status: ${getCaseStateLabel(currentState)}`}
       />
 
       <div className="space-y-6">
@@ -100,8 +86,8 @@ export const CourtCaseDetails: React.FC = () => {
             </div>
             <div>
               <p className="text-sm text-gray-500">Case State</p>
-              <Badge variant={getBadgeVariant(currentState)}>
-                {currentState.replace(/_/g, ' ')}
+              <Badge variant={getCaseStateBadgeVariant(currentState)}>
+                {getCaseStateLabel(currentState)}
               </Badge>
             </div>
             <div>

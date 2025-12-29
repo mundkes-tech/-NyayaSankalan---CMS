@@ -7,19 +7,21 @@ const caseService = new CaseService();
 
 /**
  * GET /api/cases/my
- * Get cases assigned to current user
+ * Get cases assigned to current user (POLICE only)
  */
 export const getMyCases = asyncHandler(async (req: Request, res: Response) => {
-  const userRole = req.user!.role;
-  const organizationId = req.user!.organizationId;
+  const userId = req.user!.id;
   const page = parseInt(req.query.page as string) || 1;
   const limit = parseInt(req.query.limit as string) || 20;
 
-  if (!organizationId) {
-    throw ApiError.badRequest('User must be associated with an organization');
-  }
+  console.log('=== getMyCases Debug ===');
+  console.log('User ID:', userId);
+  console.log('User Role:', req.user!.role);
 
-  const result = await caseService.getCases(organizationId, userRole, page, limit);
+  const result = await caseService.getMyCases(userId, page, limit);
+
+  console.log('Cases found:', result.cases?.length || 0);
+  console.log('========================');
 
   res.status(200).json({
     success: true,
@@ -76,6 +78,12 @@ export const assignCase = asyncHandler(async (req: Request, res: Response) => {
   const userId = req.user!.id;
   const organizationId = req.user!.organizationId;
 
+  console.log('=== assignCase Debug ===');
+  console.log('Case ID:', caseId);
+  console.log('Officer ID (assignedTo):', officerId);
+  console.log('Assigned By (SHO ID):', userId);
+  console.log('========================');
+
   if (!organizationId) {
     throw ApiError.badRequest('SHO must be associated with a police station');
   }
@@ -91,5 +99,27 @@ export const assignCase = asyncHandler(async (req: Request, res: Response) => {
   res.status(200).json({
     success: true,
     data: updatedCase,
+  });
+});
+
+/**
+ * POST /api/cases/:caseId/complete-investigation
+ * Mark investigation as complete (POLICE only)
+ */
+export const completeInvestigation = asyncHandler(async (req: Request, res: Response) => {
+  const { caseId } = req.params;
+  const userId = req.user!.id;
+  const organizationId = req.user!.organizationId;
+
+  if (!organizationId) {
+    throw ApiError.badRequest('User must be associated with a police station');
+  }
+
+  const result = await caseService.completeInvestigation(caseId, userId, organizationId);
+
+  res.status(200).json({
+    success: true,
+    data: result,
+    message: 'Investigation marked as complete',
   });
 });

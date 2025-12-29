@@ -245,7 +245,7 @@ export interface Witness {
   name: string;
   contact: string | null;
   address: string | null;
-  statementUrl: string | null;
+  statementFileUrl: string | null;
 }
 
 export interface Accused {
@@ -440,6 +440,7 @@ export interface SubmitToCourtFormData {
 
 export interface AssignCaseFormData {
   officerId: string;
+  assignmentReason?: string;
 }
 
 export interface CreateCourtActionFormData {

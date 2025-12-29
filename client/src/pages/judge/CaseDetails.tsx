@@ -13,6 +13,7 @@ import { EmptyState } from '../../components/common/EmptyState';
 import { caseApi, courtApi } from '../../api';
 import type { Case, CourtAction } from '../../types/api.types';
 import { CaseState, CourtActionType } from '../../types/api.types';
+import { getCaseStateBadgeVariant, getCaseStateLabel, isInCourt } from '../../utils/caseState';
 
 export const JudgeCaseDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -73,25 +74,7 @@ export const JudgeCaseDetails: React.FC = () => {
   const currentState = caseData.state?.currentState || 'UNKNOWN';
 
   // Judge can record actions on court-accepted or trial-ongoing cases
-  const canRecordAction =
-    currentState === CaseState.COURT_ACCEPTED ||
-    currentState === CaseState.TRIAL_ONGOING ||
-    currentState === CaseState.JUDGMENT_RESERVED;
-
-  const getBadgeVariant = (state: string) => {
-    switch (state) {
-      case CaseState.COURT_ACCEPTED:
-        return 'info';
-      case CaseState.TRIAL_ONGOING:
-        return 'warning';
-      case CaseState.JUDGMENT_RESERVED:
-        return 'default';
-      case CaseState.DISPOSED:
-        return 'success';
-      default:
-        return 'default';
-    }
-  };
+  const canRecordAction = isInCourt(currentState);
 
   const getActionBadgeVariant = (actionType: string) => {
     switch (actionType) {
@@ -112,7 +95,7 @@ export const JudgeCaseDetails: React.FC = () => {
     <>
       <Header
         title={`Case: ${fir?.firNumber || caseData.id.slice(0, 8)}`}
-        subtitle={`Status: ${currentState.replace(/_/g, ' ')}`}
+        subtitle={`Status: ${getCaseStateLabel(currentState)}`}
       />
 
       <div className="space-y-6">
@@ -125,8 +108,8 @@ export const JudgeCaseDetails: React.FC = () => {
             </div>
             <div>
               <p className="text-sm text-gray-500">Case State</p>
-              <Badge variant={getBadgeVariant(currentState)}>
-                {currentState.replace(/_/g, ' ')}
+              <Badge variant={getCaseStateBadgeVariant(currentState)}>
+                {getCaseStateLabel(currentState)}
               </Badge>
             </div>
             <div>

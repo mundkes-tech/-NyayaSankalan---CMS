@@ -9,6 +9,7 @@ import { EmptyState } from '../../components/common/EmptyState';
 import { caseApi } from '../../api';
 import type { Case } from '../../types/api.types';
 import { CaseState } from '../../types/api.types';
+import { getCaseStateBadgeVariant, getCaseStateLabel } from '../../utils/caseState';
 
 export const SHODashboard: React.FC = () => {
   const [cases, setCases] = useState<Case[]>([]);
@@ -37,17 +38,29 @@ export const SHODashboard: React.FC = () => {
 
   // Calculate stats
   const totalCases = cases.length;
+  
+  // Unassigned cases - FIR_REGISTERED with no active assignment
+  const unassignedCases = cases.filter(c => {
+    const state = c.state?.currentState;
+    const hasActiveAssignment = c.assignments?.some(a => !a.unassignedAt);
+    return state === CaseState.FIR_REGISTERED && !hasActiveAssignment;
+  });
+  
+  // Cases ready for court submission
   const pendingReview = cases.filter(
-    c => c.state?.currentState === CaseState.INVESTIGATION_COMPLETED
+    c => c.state?.currentState === CaseState.INVESTIGATION_COMPLETED ||
+         c.state?.currentState === CaseState.CHARGE_SHEET_PREPARED
   ).length;
+  
   const submittedToCourt = cases.filter(
-    c => c.state?.currentState === CaseState.SUBMITTED_TO_COURT
+    c => c.state?.currentState === CaseState.SUBMITTED_TO_COURT ||
+         c.state?.currentState === CaseState.COURT_ACCEPTED
   ).length;
 
-  // Cases needing action
+  // Cases needing action = unassigned + ready for court
   const casesNeedingAction = cases.filter(
     c => c.state?.currentState === CaseState.INVESTIGATION_COMPLETED ||
-         c.state?.currentState === CaseState.FIR_REGISTERED
+         c.state?.currentState === CaseState.CHARGE_SHEET_PREPARED
   );
 
   return (
@@ -58,7 +71,7 @@ export const SHODashboard: React.FC = () => {
       />
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
         <Card>
           <div className="text-center">
             <p className="text-4xl font-bold text-blue-600">{totalCases}</p>
@@ -67,8 +80,14 @@ export const SHODashboard: React.FC = () => {
         </Card>
         <Card>
           <div className="text-center">
+            <p className="text-4xl font-bold text-red-600">{unassignedCases.length}</p>
+            <p className="text-gray-600 mt-2">Unassigned</p>
+          </div>
+        </Card>
+        <Card>
+          <div className="text-center">
             <p className="text-4xl font-bold text-orange-600">{pendingReview}</p>
-            <p className="text-gray-600 mt-2">Pending Review</p>
+            <p className="text-gray-600 mt-2">Ready for Court</p>
           </div>
         </Card>
         <Card>
@@ -78,6 +97,37 @@ export const SHODashboard: React.FC = () => {
           </div>
         </Card>
       </div>
+
+      {/* Unassigned Cases - Priority 1 */}
+      {unassignedCases.length > 0 && (
+        <Card title="🔴 Unassigned Cases (Requires Officer Assignment)" className="mb-6">
+          <div className="space-y-3">
+            {unassignedCases.slice(0, 5).map((c) => (
+              <Link
+                key={c.id}
+                to={`/sho/cases/${c.id}`}
+                className="block p-4 border border-red-200 bg-red-50 rounded-lg hover:bg-red-100 transition-colors"
+              >
+                <div className="flex justify-between items-center">
+                  <div>
+                    <p className="font-semibold">{c.fir?.firNumber || c.id.slice(0, 8)}</p>
+                    <p className="text-sm text-gray-600">{c.fir?.sectionsApplied}</p>
+                    <p className="text-xs text-gray-500">
+                      Created: {new Date(c.createdAt).toLocaleDateString('en-IN')}
+                    </p>
+                  </div>
+                  <Badge variant="danger">UNASSIGNED</Badge>
+                </div>
+              </Link>
+            ))}
+            {unassignedCases.length > 5 && (
+              <p className="text-center text-gray-500 text-sm">
+                +{unassignedCases.length - 5} more unassigned cases
+              </p>
+            )}
+          </div>
+        </Card>
+      )}
 
       {/* Cases Needing Action */}
       {casesNeedingAction.length > 0 && (
@@ -126,15 +176,8 @@ export const SHODashboard: React.FC = () => {
                         {new Date(c.createdAt).toLocaleDateString()}
                       </p>
                     </div>
-                    <Badge
-                      variant={
-                        state === CaseState.FIR_REGISTERED ? 'info' :
-                        state === CaseState.UNDER_INVESTIGATION ? 'warning' :
-                        state === CaseState.SUBMITTED_TO_COURT ? 'success' :
-                        'default'
-                      }
-                    >
-                      {state.replace(/_/g, ' ')}
+                    <Badge variant={getCaseStateBadgeVariant(state)}>
+                      {getCaseStateLabel(state)}
                     </Badge>
                   </div>
                 </Link>

@@ -10,6 +10,7 @@ import { EmptyState } from '../../components/common/EmptyState';
 import { caseApi } from '../../api';
 import type { Case } from '../../types/api.types';
 import { CaseState } from '../../types/api.types';
+import { getCaseStateBadgeVariant, getCaseStateLabel } from '../../utils/caseState';
 
 export const PoliceMyCases: React.FC = () => {
   const [cases, setCases] = useState<Case[]>([]);
@@ -36,24 +37,6 @@ export const PoliceMyCases: React.FC = () => {
 
   if (isLoading) return <Loader />;
   if (error) return <ErrorMessage message={error} retry={fetchMyCases} />;
-
-  const getBadgeVariant = (state: string) => {
-    switch (state) {
-      case CaseState.FIR_REGISTERED:
-        return 'info';
-      case CaseState.UNDER_INVESTIGATION:
-      case CaseState.CASE_ASSIGNED:
-        return 'warning';
-      case CaseState.SUBMITTED_TO_COURT:
-      case CaseState.COURT_ACCEPTED:
-        return 'success';
-      case CaseState.DISPOSED:
-      case CaseState.ARCHIVED:
-        return 'default';
-      default:
-        return 'default';
-    }
-  };
 
   return (
     <>
@@ -117,8 +100,8 @@ export const PoliceMyCases: React.FC = () => {
                         {c.fir?.sectionsApplied || '-'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <Badge variant={getBadgeVariant(state)}>
-                          {state.replace(/_/g, ' ')}
+                        <Badge variant={getCaseStateBadgeVariant(state)}>
+                          {getCaseStateLabel(state)}
                         </Badge>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">

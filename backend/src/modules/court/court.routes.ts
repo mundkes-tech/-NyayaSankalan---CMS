@@ -36,19 +36,16 @@ router.post(
   [
     body('actionType')
       .isIn([
-        'HEARING_SCHEDULED',
-        'HEARING_HELD',
-        'ADJOURNMENT',
-        'BAIL_GRANTED',
-        'BAIL_REJECTED',
+        'COGNIZANCE',
+        'CHARGES_FRAMED',
+        'HEARING',
         'JUDGMENT',
-        'CASE_DISMISSED',
-        'APPEAL_FILED',
-        'OTHER',
+        'SENTENCE',
+        'ACQUITTAL',
+        'CONVICTION',
       ])
       .withMessage('Valid action type is required'),
     body('actionDate').isISO8601().withMessage('Valid action date is required'),
-    body('description').notEmpty().withMessage('Description is required'),
     validate,
   ],
   createCourtAction

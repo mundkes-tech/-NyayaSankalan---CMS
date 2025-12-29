@@ -53,7 +53,75 @@ export class CaseService {
   }
 
   /**
-   * List cases for police station
+   * Get cases assigned to a specific officer (for POLICE role)
+   */
+  async getMyCases(userId: string, page: number = 1, limit: number = 20) {
+    const skip = (page - 1) * limit;
+
+    console.log('=== getMyCases Service Debug ===');
+    console.log('Looking for assignments where assignedTo =', userId);
+
+    // First, let's check what assignments exist for this user
+    const debugAssignments = await prisma.caseAssignment.findMany({
+      where: { assignedTo: userId },
+      select: { id: true, caseId: true, assignedTo: true, unassignedAt: true },
+    });
+    console.log('All assignments for user:', JSON.stringify(debugAssignments, null, 2));
+
+    // Find cases where this officer has an active assignment
+    const [cases, total] = await Promise.all([
+      prisma.case.findMany({
+        where: {
+          assignments: {
+            some: {
+              assignedTo: userId,
+              unassignedAt: null, // Only active assignments
+            },
+          },
+        },
+        include: {
+          fir: {
+            include: { policeStation: true },
+          },
+          state: true,
+          assignments: {
+            where: { unassignedAt: null },
+            include: {
+              assignedUser: {
+                select: { id: true, name: true },
+              },
+            },
+          },
+        },
+        skip,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+      }),
+      prisma.case.count({
+        where: {
+          assignments: {
+            some: {
+              assignedTo: userId,
+              unassignedAt: null,
+            },
+          },
+        },
+      }),
+    ]);
+
+    return {
+      cases,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
+  }
+
+  /**
+   * List all cases for police station (for SHO/COURT roles)
    */
   async getCases(organizationId: string, userRole: string, page: number = 1, limit: number = 20) {
     const skip = (page - 1) * limit;
@@ -213,6 +281,78 @@ export class CaseService {
         data: {
           userId,
           action: 'STATE_CHANGED',
+          entity: 'CASE',
+          entityId: caseId,
+        },
+      });
+
+      return { caseId, previousState: currentState, newState };
+    });
+
+    return result;
+  }
+
+  /**
+   * Complete investigation - Police marks case as investigation complete
+   */
+  async completeInvestigation(caseId: string, userId: string, policeStationId: string) {
+    const caseRecord = await prisma.case.findUnique({
+      where: { id: caseId },
+      include: {
+        fir: true,
+        state: true,
+        assignments: {
+          where: { unassignedAt: null },
+        },
+      },
+    });
+
+    if (!caseRecord) {
+      throw ApiError.notFound('Case not found');
+    }
+
+    if (caseRecord.fir.policeStationId !== policeStationId) {
+      throw ApiError.forbidden('Access denied');
+    }
+
+    // Check if user is assigned to this case
+    const isAssigned = caseRecord.assignments.some(a => a.assignedTo === userId);
+    if (!isAssigned) {
+      throw ApiError.forbidden('You are not assigned to this case');
+    }
+
+    const currentState = caseRecord.state?.currentState || CaseState.FIR_REGISTERED;
+
+    // Only allow from CASE_ASSIGNED or UNDER_INVESTIGATION
+    if (currentState !== CaseState.CASE_ASSIGNED && currentState !== CaseState.UNDER_INVESTIGATION) {
+      throw ApiError.badRequest(`Cannot complete investigation from state: ${currentState}`);
+    }
+
+    const newState = CaseState.INVESTIGATION_COMPLETED;
+
+    const result = await prisma.$transaction(async (tx) => {
+      // Record history
+      await tx.caseStateHistory.create({
+        data: {
+          caseId,
+          fromState: currentState,
+          toState: newState,
+          changedBy: userId,
+          changeReason: 'Investigation marked as complete by investigating officer',
+        },
+      });
+
+      // Update current state
+      await tx.currentCaseState.update({
+        where: { caseId },
+        data: { currentState: newState },
+      });
+
+      // Audit log
+      await tx.auditLog.create({
+        data: {
+          userId,
+          action: 'INVESTIGATION_COMPLETED',
           entity: 'CASE',
           entityId: caseId,
         },

@@ -55,15 +55,16 @@ router.post(
 router.get('/cases/:caseId/evidence', authenticate, isPolice, getEvidence);
 
 /**
- * Witnesses
+ * Witnesses - supports file upload for statement
  */
 router.post(
   '/cases/:caseId/witnesses',
   authenticate,
   isPolice,
+  uploadSingle('statementFile'), // Optional statement file upload
   [
     body('name').notEmpty().withMessage('Witness name is required'),
-    body('statementFileUrl').notEmpty().withMessage('Statement file URL is required'),
+    // statement or statementFile is optional - can be added later
     validate,
   ],
   createWitness
