@@ -80,7 +80,7 @@ export const createFIR = asyncHandler(async (req: Request, res: Response) => {
         firNumber: fir.firNumber,
         sectionsApplied: fir.sectionsApplied,
         incidentDate: fir.incidentDate,
-        policeStationName: fir.policeStation?.name,
+        // policeStationName not available from FIR object (would require separate query)
       })
       .catch((err) => console.error('AI FIR indexing error (non-blocking)', err));
   } catch (err) {
